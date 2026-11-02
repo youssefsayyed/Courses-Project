@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Http\Requests\CreateStudentRequest;
 use App\Models\Student;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\File;
+use ImageUpload;
 
 class StudentController extends Controller
 {
@@ -37,10 +39,8 @@ class StudentController extends Controller
         $student->phone = $request->phone;
     // image upload
         if($request->has('img')){
-            $photo = $request->img;
-            $extension = strtolower($photo->extension());
-            $filename = time().rand(1,1000).".".$extension;
-            $photo->move('uploads',$filename);
+            //using helper function
+            $filename = ImageUpload::upload($request->img);
             $student->img = $filename;
         }
         $student->save();
@@ -72,23 +72,26 @@ class StudentController extends Controller
      */
     public function update(CreateStudentRequest $request, $id)
     {
-        $data = Student::find($id);
-        if(empty($data)){
+        $student = Student::find($id);
+        if(empty($student)){
             return redirect()->back()->with(['error'=>'This Student cannot be edited']);
         }
-        $data->name = $request->name;
-        $data->age = $request->age;
-        $data->address = $request->address;
-        $data->phone = $request->phone;
+        $student->name = $request->name;
+        $student->age = $request->age;
+        $student->address = $request->address;
+        $student->phone = $request->phone;
        // image edit
         if($request->has('img')){
-            $photo = $request->img;
-            $extension = strtolower($photo->extension());
-            $filename = time().rand(1,1000).".".$extension;
-            $photo->move('uploads',$filename);
-            $data->img = $filename;
+            if($student->img){
+                $imagePath = public_path('uploads/' . $student->image);
+                if(File::exists($imagePath)) {
+                    File::delete($imagePath);
+                } 
+            }
+            $filename = ImageUpload::upload($request->img);
+            $student->img = $filename;
         }
-        $data->save();
+        $student->save();
         return redirect()->route('students.index')->with(['success'=>'The Student is updated']);
     }
 

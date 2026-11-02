@@ -1,7 +1,9 @@
 <?php
 
 use App\Helpers\ApiResponse;
+use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\CourseController;
+use App\Http\Controllers\Api\StudentController;
 use App\Models\Course;
 use App\Models\Student;
 use Illuminate\Http\Request;
@@ -11,15 +13,14 @@ use Illuminate\Support\Facades\Route;
 //     return $request->user();
 // })->middleware('auth:sanctum');
 
-Route::get('/student_api',function(){
-    return response()->json([
-        'student' => Student::all()
-    ]);
-});
+// Route::apiResource('courses_api',CourseController::class);
+// Route::apiResource('students_api',StudentController::class);
 
-Route::get('/courses_api',function(){
-    $data = Course::all();
-    return ApiResponse::send(200,true,'msg',$data);
-});
+Route::post('register',[AuthController::class,'register']);
+Route::post('login',[AuthController::class,'login']);
 
-Route::apiResource('courses',CourseController::class);
+Route::middleware('auth:sanctum')->group(function(){
+    Route::get('logout',[AuthController::class,'logout']);
+    Route::apiResource('courses_api',CourseController::class);
+    Route::apiResource('students_api',StudentController::class);
+});
