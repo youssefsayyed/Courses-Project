@@ -1,59 +1,116 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# Courses Project
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+An admin dashboard for a courses company, built with Laravel. Admins can log in and manage all courses and students from one place. The app also exposes a REST API secured with Laravel Sanctum tokens.
 
-## About Laravel
+## Features
+- Authentication: registration and login (session-based for the dashboard, token-based for the API)
+- Dashboard: view, add and delete courses and students
+- REST API with full CRUD for courses and students
+- Token authentication with Laravel Sanctum
+- Image upload, stored in `public/uploads`
+- Form validation on all inputs
+- Middleware protecting dashboard pages and API routes
+- Consistent JSON responses for every API endpoint
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+## Tech stack
+- PHP 8.2, Laravel
+- Laravel Sanctum
+- Eloquent ORM
+- MySQL
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+## Code highlights
+- **Eloquent models** for courses and students
+- **Custom helper `apiResponse()`**: returns a consistent JSON structure for every API endpoint
+- **Custom helper `UploadImage()`**: handles image uploads and stores them in `public/uploads`
+- **Middleware** that restricts access to authenticated users
+- **Two auth methods:** the dashboard uses session login, and the API uses Sanctum tokens
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+## Screenshots
+![Login](docs/login.png)
+![Courses](docs/courses.png)
+![Students](docs/students.png)
 
-## Learning Laravel
+## API authentication
+Register or log in to receive a token (returned in `data.token`), then send it with every other request:
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework. You can also check out [Laravel Learn](https://laravel.com/learn), where you will be guided through building a modern Laravel application.
+```
+Authorization: Bearer <your-token>
+Accept: application/json
+```
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+Only `/api/register` and `/api/login` are public. All other endpoints require a valid token. Logging out revokes the token.
 
-## Laravel Sponsors
+## API endpoints
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+### Authentication
+| Method | URL | Auth | Description |
+|---|---|---|---|
+| POST | /api/register | No | Register a new user |
+| POST | /api/login | No | Log in and receive a token |
+| GET | /api/logout | Yes | Log out and revoke the token |
 
-### Premium Partners
+### Courses
+| Method | URL | Auth | Description |
+|---|---|---|---|
+| GET | /api/courses_api | Yes | List all courses |
+| POST | /api/courses_api | Yes | Create a course |
+| GET | /api/courses_api/{id} | Yes | Show one course |
+| PUT/PATCH | /api/courses_api/{id} | Yes | Update a course |
+| DELETE | /api/courses_api/{id} | Yes | Delete a course |
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+### Students
+| Method | URL | Auth | Description |
+|---|---|---|---|
+| GET | /api/students_api | Yes | List all students |
+| POST | /api/students_api | Yes | Add a student |
+| GET | /api/students_api/{id} | Yes | Show one student |
+| PUT/PATCH | /api/students_api/{id} | Yes | Update a student |
+| DELETE | /api/students_api/{id} | Yes | Delete a student |
 
-## Contributing
+### Example
+```bash
+# 1. Log in and copy the token from data.token in the response
+curl -X POST http://localhost:8000/api/login \
+  -H "Accept: application/json" \
+  -d "email=admin@example.com" \
+  -d "password=password"
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+# 2. Use the token on any protected endpoint
+curl http://localhost:8000/api/courses_api \
+  -H "Accept: application/json" \
+  -H "Authorization: Bearer YOUR_TOKEN"
+```
 
-## Code of Conduct
+## Run locally
+1. Clone the repo
+   ```bash
+   git clone https://github.com/youssefsayyed/Courses-Project.git
+   cd Courses-Project
+   ```
+2. Install dependencies
+   ```bash
+   composer install
+   ```
+3. Set up the environment
+   ```bash
+   cp .env.example .env
+   php artisan key:generate
+   ```
+4. Add your database details to `.env`
+5. Create the tables
+   ```bash
+   php artisan migrate
+   ```
+6. Start the app
+   ```bash
+   php artisan serve
+   ```
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+## What I learned
+- Building CRUD with Eloquent, validation and middleware
+- Securing an API with Laravel Sanctum tokens
+- Designing a consistent REST API response format
+- Handling file uploads with a reusable helper
 
-## Security Vulnerabilities
-
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
-
-## License
-
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+## Author
+Youssef Sayyed ([GitHub](https://github.com/youssefsayyed))
